@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock 2D</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background: rgb(10,10,20);
+            background: linear-gradient(90deg, rgba(10,10,20,1) 0%, rgba(20,20,40,1) 50%, rgba(30,30,60,1) 100%);
+            text-align: center;
+            padding: 20px;
+            color: white;
+        }
+        .toolbar {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            background: rgba(231, 42, 206, 0.8);
+            padding: 10px;
+            border-radius: 10px;
+            margin: 10px auto;
+            width: 90%;
+            max-width: 400px;
+        }
+        .toolbar a {
+            font-size: 1.5em;
+            text-decoration: none;
+            color: white;
+            transition: 0.3s;
+        }
+        .toolbar a:hover {
+            transform: scale(1.2);
+        }
+        .card {
+            /*background: rgb(141, 47, 141);*/
+            background:rgb(161 14 14);
+            color: white;
+            padding: 15px;
+            border-radius: 15px !important;
+            box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.6);
+            margin: 15px auto;
+            width: 90%;
+            max-width: 400px;
+            transition: 0.3s;
+        }
+        .card:hover {
+            transform: scale(1.05);
+        }
+        .time {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+        .info {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-top: 10px;
+            font-size: 1.2em;
+        }
+        .highlight {
+            color: yellow;
+            font-weight: bold;
+        }
+        .result{
+            font-size: 5em;
+        }
+        .table-responsive{
+            width: 100%;
+
+        }
+        .table-responsive tr th, .table-responsive tr td{
+            width: 400px;
+        }
+        .stars {
+            animation-iteration-count: infinite;
+        }
+        .star {
+            animation-name: twinkle-1;
+            animation-duration: 1.5s;
+        }
+        @keyframes twinkle-1 {
+            20% {
+                opacity: 0;
+            }
+        }
+        @keyframes borderAnimation {
+            0% { border-image-source: linear-gradient(0deg, #ff00ff, #00ffff); }
+            25% { border-image-source: linear-gradient(90deg, #ff00ff, #00ffff); }
+            50% { border-image-source: linear-gradient(180deg, #ff00ff, #00ffff); }
+            75% { border-image-source: linear-gradient(270deg, #ff00ff, #00ffff); }
+            100% { border-image-source: linear-gradient(360deg, #ff00ff, #00ffff); }
+            }
+
+            .card-animate {
+            font-family: Arial, sans-serif;
+            display: inline-block;
+            padding: 10px 20px;
+            color: white;
+            background: #222;
+            border: 4px solid transparent;
+            border-image-slice: 1;
+            border-image-source: linear-gradient(0deg, #ff00ff, #00ffff);
+            animation: borderAnimation 3s linear infinite;
+            border-radius: 8px;
+            text-align: center;
+            }
+    </style>
+</head>
+<body>
+    <div ng-app="myApp" ng-controller="myCtrl">
+        <div class="toolbar">
+            <h2>Stock & 2D</h2>
+            <a href="#">🏠</a>
+            <a href="#">&#128512;</a>
+        </div>
+        
+        <div class="result stars star">
+            <span>{{ finalResult }}</span>
+        </div>
+         
+        <p>&#128336; Updated: {{ currentDate | date: 'dd/MM/yyyy hh:mm:ss' }}</p>
+        <div class="card card-animate">
+            <div class="time">12:01 AM</div>
+            <div class="info">
+                <table class="table-responsive">
+                    <thead>
+                        <tr>
+                            <th>Set</th>
+                            <th>Value</th>
+                            <th>2D</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td align="center">
+                                <span><b>{{ setAM }}</b></span>
+                            </td>
+                            <td align="center">
+                                <span><b>{{ valueAM }}</b></span>
+                            </td>
+                            <td align="center">
+                                <span class="highlight">{{ resultAM }}</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card card-animate">
+            <div class="time">04:30 PM</div>
+            <div class="info">
+                <table class="table-responsive">
+                    <thead>
+                        <tr>
+                            <th>Set</th>
+                            <th>Value</th>
+                            <th>2D</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td align="center">
+                                <span><b> {{ setPM }} </b></span>
+                            </td>
+                            <td align="center">
+                                <span><b>{{ valuePM }}</b></span>
+                            </td>
+                            <td align="center">
+                                <span class="highlight">{{ resultPM }}</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+    </div>
+    <script>
+        var app = angular.module('myApp', []);
+
+        app.controller('myCtrl', function($scope, $http) {
+            
+           
+
+            function getStockData(){
+                var amDate = new Date();
+                var pmDate3=new Date();
+                var pmDate = new Date();
+
+                amDate.setHours(12,1,0);
+                pmDate3.setHours(15,0,0);
+                pmDate.setHours(16,30,0);
+
+                $http({
+                method : "GET",
+                url : "https://api.thaistock2d.com/live"
+                }).then(function mySuccess(response) {
+                    
+                    $scope.resultAM = response.data.result[1].twod;
+                    $scope.resultPM = response.data.result[3].twod;
+                    var now = new Date();
+                    $scope.luckeyNumber = '--';
+                    if(now >= amDate){
+                        $scope.setAM = response.data.result[1].set;
+                        $scope.valueAM = response.data.result[1].value; 
+                        $scope.finalResult = $scope.resultAM;
+                    }
+                    else{
+                        $scope.setAM = response.data.live.set;
+                        $scope.valueAM = response.data.live.value; 
+                        $scope.finalResult = response.data.live.twod;
+                    }
+                    if(now >= pmDate){
+                        $scope.finalResult = $scope.resultPM;
+                        $scope.setPM = response.data.result[3].set;
+                        $scope.valuePM = response.data.result[3].value;    
+                    }
+                    else{
+                        $scope.setPM = '--';
+                        $scope.valuePM = '--'; 
+                        $scope.finalResult = response.data.live.twod;
+                    }
+                    
+                    if(now >= pmDate3){
+                        $scope.setPM = response.data.live.set;
+                        $scope.valuePM = response.data.live.value;
+                    }
+
+
+                    
+                    
+                }, function myError(response) {
+                    $scope.finalResult = response.statusText;
+                });
+            }
+           
+            
+
+            var interval = setInterval(function(){
+                $scope.currentDate = new Date();
+
+                getStockData();
+            }, 1000);
+            
+        });
+    </script>
+    
+   
+</body>
+</html>
